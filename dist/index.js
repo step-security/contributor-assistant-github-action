@@ -454,24 +454,12 @@ async function getBranchOfPullRequest() {
     return pullRequest.data.head.ref;
 }
 async function getSelfWorkflowId() {
-    const perPage = 30;
-    let hasNextPage = true;
-    for (let page = 1; hasNextPage === true; page++) {
-        const workflowList = await octokit_1.octokit.rest.actions.listRepoWorkflows({
-            owner: github_1.context.repo.owner,
-            repo: github_1.context.repo.repo,
-            per_page: perPage,
-            page
-        });
-        if (workflowList.data.total_count < page * perPage) {
-            hasNextPage = false;
-        }
-        const workflow = workflowList.data.workflows.find(w => w.name == github_1.context.workflow);
-        if (workflow) {
-            return workflow.id;
-        }
-    }
-    throw new Error(`Unable to locate this workflow's ID in this repository, can't trigger job..`);
+    const run = await octokit_1.octokit.rest.actions.getWorkflowRun({
+        owner: github_1.context.repo.owner,
+        repo: github_1.context.repo.repo,
+        run_id: github_1.context.runId
+    });
+    return run.data.workflow_id;
 }
 async function listWorkflowRunsInBranch(branch, workflowId) {
     console.debug(branch);
